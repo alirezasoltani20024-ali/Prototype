@@ -154,11 +154,22 @@ let timer;
 function show(t){const el=document.querySelector("#message");el.textContent=t;el.classList.add("show");clearTimeout(timer);timer=setTimeout(()=>el.classList.remove("show"),4200);}
 function distTo(obj){return camera.position.distanceTo(obj.getWorldPosition(new THREE.Vector3()));}
 
-document.querySelector("#startBtn").onclick=()=>{
-  started=true;document.querySelector("#start").classList.add("fade");controls.lock();
+document.querySelector("#startBtn").addEventListener("click", (event) => {
+  event.preventDefault();
+  started = true;
+  document.querySelector("#start").classList.add("fade");
   show("رادیو را بررسی کنید. سپس اطراف خودرو را بگردید.");
-};
-controls.addEventListener("lock",()=>started=true);
+  // Pointer Lock is optional. The game starts even if the browser blocks it.
+  try { controls.lock(); } catch (e) { console.warn("Pointer Lock unavailable:", e); }
+});
+
+// Clicking the game view can lock the mouse after the game has started.
+renderer.domElement.addEventListener("click", () => {
+  if (started && !controls.isLocked) {
+    try { controls.lock(); } catch (e) {}
+  }
+});
+controls.addEventListener("lock", () => { started = true; });
 
 addEventListener("keydown",e=>{keys[e.code]=true;if(e.code==="KeyE"&&started) interact();});
 addEventListener("keyup",e=>keys[e.code]=false);
